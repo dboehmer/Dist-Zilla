@@ -26,6 +26,20 @@ file.  It defaults, of course, to F<cpanfile>.
     [CPANFile]
     filename = dzil-generated-cpanfile
 
+=attr comment
+
+=attr comments
+
+This parameter allows to insert comments at the top of F<cpanfile>. Each
+parameter prepends its value as one line to the file. The lines are
+inserted in the same order as the parameters occur in F<dist.ini>.
+
+The value might include leading whitespace and a literal C<#> character
+as comment indicator. Otherwise a C<#> is inserted after any leading
+whitespace.
+
+C<comment> is an alias for C<comments>.
+
 =head1 SEE ALSO
 
 =for :list
@@ -35,11 +49,20 @@ file.  It defaults, of course, to F<cpanfile>.
 
 =cut
 
+has comments => (
+  is      => 'ro',
+  isa     => 'ArrayRef[Str]',
+  default => sub { [] },
+);
+
 has filename => (
   is  => 'ro',
   isa => 'Str',
   default => 'cpanfile',
 );
+
+sub mvp_aliases { { comment => 'comments' } }
+sub mvp_multivalue_args { qw(comments) }
 
 sub _hunkify_hunky_hunk_hunks {
   my ($self, $indent, $type, $req) = @_;
@@ -56,6 +79,7 @@ sub _hunkify_hunky_hunk_hunks {
 sub gather_files {
   my ($self, $arg) = @_;
 
+  my $comments = $self->comments;
   my $zilla = $self->zilla;
 
   my $file  = Dist::Zilla::File::FromCode->new({
@@ -67,6 +91,12 @@ sub gather_files {
       my @phases = qw(runtime build test configure develop);
 
       my $str = '';
+
+      for my $comment (@$comments) {
+        $comment =~ s/ ^ (\s*) (?=[^#]) /# $1/gmx;
+        $str .= $comment . "\n";
+      }
+
       for my $phase (@phases) {
         for my $type (@types) {
           my $req = $prereqs->requirements_for($phase, $type);
