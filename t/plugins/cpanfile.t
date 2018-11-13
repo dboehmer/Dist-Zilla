@@ -12,13 +12,14 @@ INI
 ok cpanfile('build/otherfile' => { filename => 'otherfile' }),
   "non-default filename";
 
-like cpanfile({ comment => ["foobar"] }) => qr/^# foobar\n/,
+like cpanfile('build/cpanfile' => { comment => ["foobar"] }) => qr/^# foobar\n/,
   "simple comment";
 
-like cpanfile({ comment => ["#foobar"] }) => qr/^#foobar\n/,
+like cpanfile('build/cpanfile' => { comment => ["#foobar"] }) => qr/^#foobar\n/,
   "comment with literal '#'";
 
-like cpanfile({ comment => [ "foo", "bar" ] }) => qr/^# foo\n# bar\n/,
+like cpanfile('build/cpanfile' => { comment => [ "foo", "bar" ] }) =>
+  qr/^# foo\n# bar\n/,
   "multiline comment";
 
 done_testing;
